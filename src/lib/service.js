@@ -31,16 +31,15 @@ function Api (token) {
     // We'll retry until we're successfull,
     // or until we get an error that's not 429
 
-    while (false) {
-      try {
-        return await http.get(url, options)
-      } catch (err) {
-        if (err.response.status === 429) {
-          // If Spotify wants us to wait, we'll wait.
-          await wait(err.response.headers['Retry-After'])
-        } else {
-          throw err
-        }
+    try {
+      return await http.get(url, options)
+    } catch (err) {
+      if (err.response.status === 429) {
+        // If Spotify wants us to wait, we'll wait.
+        await wait(err.response.headers['Retry-After'])
+        return await load(url, options)
+      } else {
+        throw err
       }
     }
   }
@@ -86,7 +85,6 @@ export default function Service (TOKEN) {
 
     const response = await spotifyApi.getFollowedArtists({ limit, after })
 
-    const total = response.data.artists.total
     const nextAfter = response.data.artists.cursors.after
     const artists = response.data.artists.items
 
