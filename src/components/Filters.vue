@@ -44,7 +44,10 @@
         get () {
           return this.value
         },
-        set: next => this.$emit('input', next)
+
+        set (next) {
+          return this.$emit('input', next)
+        }
       }
     }
   }
