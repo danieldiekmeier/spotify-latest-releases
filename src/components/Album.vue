@@ -19,8 +19,17 @@
     flex-direction column
     justify-content center
 
+    h3 {
+      margin-bottom 0rem
+    }
+
     h2 {
-      margin-bottom 0.5em
+      margin-bottom 0.5rem
+    }
+
+    p {
+      margin-bottom 0.5rem
+      text-transform capitalize
     }
   }
 </style>
@@ -37,8 +46,9 @@
     />
 
     <div class="Album-content">
+      <h3>{{ album.artists }}</h3>
       <h2>{{ album.name }}</h2>
-      <p>{{ album.artists }}</p>
+      <p>{{ album.album_type }}</p>
       <p>{{ album.date }}</p>
     </div>
   </a>
