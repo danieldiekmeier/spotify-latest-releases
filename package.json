@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "webpack:serve": "webpack-dev-server --hot",
-    "build": "NODE_ENV=production webpack -p"
+    "build": "rm -rf ./dist && NODE_ENV=production webpack -p"
   },
   "babel": {
     "presets": [

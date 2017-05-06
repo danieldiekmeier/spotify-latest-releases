@@ -41,7 +41,9 @@
 
     computed: {
       filters: {
-        get: () => this.value,
+        get () {
+          return this.value
+        },
         set: next => this.$emit('input', next)
       }
     }
