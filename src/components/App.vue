@@ -34,6 +34,8 @@
     </v-loading>
 
     <v-album-list :albums="albums" />
+
+    <v-footer />
   </div>
 </template>
 
@@ -52,7 +54,8 @@
     components: {
       'v-no-token': require('components/NoToken'),
       'v-loading': require('components/Loading'),
-      'v-album-list': require('components/AlbumList')
+      'v-album-list': require('components/AlbumList'),
+      'v-footer': require('components/Footer')
     },
 
     data: () => ({
