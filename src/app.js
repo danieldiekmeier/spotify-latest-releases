@@ -4,7 +4,7 @@ const SpotifyWebApi = require('spotify-web-api-node')
 const _ = require('lodash')
 const bluebird = require('bluebird')
 const moment = require('moment')
-const static = require('koa-static')
+const serve = require('koa-static')
 const path = require('path')
 
 const config = require('../config')
@@ -36,8 +36,8 @@ router.get('/callback', async (ctx, next) => {
 })
 
 app
-  .use(static(path.resolve(__dirname, '../dist')))
+  .use(serve(path.resolve(__dirname, '../dist')))
   .use(router.routes())
   .use(router.allowedMethods())
 
-app.listen(5000)
+app.listen(config.port)
