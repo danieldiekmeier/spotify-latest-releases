@@ -1,7 +1,8 @@
-import SpotifyWebApi from 'spotify-web-api-node'
 import bluebird from 'bluebird'
 import moment from 'moment'
 import _ from 'lodash'
+import axios from 'axios'
+import Qs from 'qs'
 
 function unpackArray (datas, unpack) {
   return _.flatten(datas.map(unpack))
@@ -15,21 +16,79 @@ function unpackItem (body, key) {
   }
 }
 
-// Create the authorization URL
+function Api (token) {
+  const http = axios.create({
+    headers: {
+      Authorization: `Bearer ${token}`
+    },
+
+    paramsSerializer (params) {
+      return Qs.stringify(params, { arrayFormat: 'brackets' })
+    }
+  })
+
+  async function load (url, options) {
+    // We'll retry until we're successfull,
+    // or until we get an error that's not 429
+
+    while (false) {
+      try {
+        return await http.get(url, options)
+      } catch (err) {
+        if (err.response.status === 429) {
+          // If Spotify wants us to wait, we'll wait.
+          await wait(err.response.headers['Retry-After'])
+        } else {
+          throw err
+        }
+      }
+    }
+  }
+
+  return {
+    getFollowedArtists (_params) {
+      const params = Object.assign({}, _params, { type: 'artist' })
+
+      return load('https://api.spotify.com/v1/me/following', {
+        params
+      })
+    },
+
+    getArtistAlbums (artistId, _params) {
+      const params = Object.assign({}, _params)
+
+      return load(`https://api.spotify.com/v1/artists/${artistId}/albums`, {
+        params
+      })
+    },
+
+    getAlbums (albumIds) {
+      return load(`https://api.spotify.com/v1/albums`, {
+        params: {
+          ids: albumIds.join(',')
+        }
+      })
+    }
+  }
+}
+
+function wait (s) {
+  return new Promise (resolve => {
+    setTimeout(resolve, s * 1000)
+  })
+}
 
 export default function Service (TOKEN) {
-  const spotifyApi = new SpotifyWebApi()
-
-  spotifyApi.setAccessToken(TOKEN)
+  const spotifyApi = Api(TOKEN)
 
   async function getFollowedArtists (after) {
     const limit = 50
 
-    const data = await spotifyApi.getFollowedArtists({ limit, after })
-    const total = data.body.artists.total
-    const nextAfter = data.body.artists.cursors.after
+    const response = await spotifyApi.getFollowedArtists({ limit, after })
 
-    const artists = data.body.artists.items
+    const total = response.data.artists.total
+    const nextAfter = response.data.artists.cursors.after
+    const artists = response.data.artists.items
 
     if (nextAfter) {
       return [].concat(artists, await getFollowedArtists(nextAfter))
@@ -42,12 +101,12 @@ export default function Service (TOKEN) {
     const allAlbumsDataArray = await bluebird.map(artists, artist => {
       return spotifyApi.getArtistAlbums(artist.id, {
         limit: 5,
-        album_type: ['album', 'single'],
+        album_type: 'album,single',
         country: 'DE'
       })
     })
 
-    const allAlbums = unpackArray(allAlbumsDataArray, data => data.body.items)
+    const allAlbums = unpackArray(allAlbumsDataArray, response => response.data.items)
 
     return allAlbums.map(album => album.id)
   }
@@ -60,8 +119,8 @@ export default function Service (TOKEN) {
       return spotifyApi.getAlbums(albumIds)
     })
 
-    // // returns [[20 Albums], [20 Albums]]
-    const albums = unpackArray(albumDataArray, data => data.body.albums)
+    // returns [[20 Albums], [20 Albums]]
+    const albums = unpackArray(albumDataArray, response => response.data.albums)
 
     return albums
   }
