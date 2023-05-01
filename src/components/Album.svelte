@@ -17,7 +17,7 @@
     </div>
   </a>
 
-  <img class="Album-backdrop" src={album.cover} alt="" />
+  <img class="Album-backdrop" src={album.cover} alt="" loading="lazy" />
 </div>
 
 <style>
