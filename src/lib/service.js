@@ -1,43 +1,30 @@
-import bluebird from 'bluebird'
-import moment from 'moment'
-import _ from 'lodash'
-import axios from 'axios'
-import Qs from 'qs'
-
-function unpackArray (datas, unpack) {
-  return _.flatten(datas.map(unpack))
-}
-
-function unpackItem (body, key) {
-  if (key) {
-    return body[key].items
-  } else {
-    return body.items
-  }
-}
-
-function Api (token) {
-  const http = axios.create({
-    headers: {
-      Authorization: `Bearer ${token}`
-    },
-
-    paramsSerializer (params) {
-      return Qs.stringify(params, { arrayFormat: 'brackets' })
-    }
-  })
-
-  async function load (url, options) {
-    // We'll retry until we're successfull,
+function Api(token) {
+  async function load(baseUrl, params) {
+    // We'll retry until we're successful,
     // or until we get an error that's not 429
 
     try {
-      return await http.get(url, options)
+      const url = new URL(baseUrl)
+
+      Object.entries(params).forEach(([key, value]) => {
+        if (value === undefined) return
+        url.searchParams.append(key, value)
+      })
+
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      return response.json()
     } catch (err) {
-      if (err.response.status === 429) {
+      if (err.response?.status === 429) {
         // If Spotify wants us to wait, we'll wait.
         await wait(err.response.headers['Retry-After'])
-        return await load(url, options)
+        return await load(url, params)
       } else {
         throw err
       }
@@ -45,48 +32,44 @@ function Api (token) {
   }
 
   return {
-    getFollowedArtists (_params) {
-      const params = Object.assign({}, _params, { type: 'artist' })
-
+    getFollowedArtists(params) {
       return load('https://api.spotify.com/v1/me/following', {
-        params
+        ...params,
+        type: 'artist',
       })
     },
 
-    getArtistAlbums (artistId, _params) {
-      const params = Object.assign({}, _params)
-
-      return load(`https://api.spotify.com/v1/artists/${artistId}/albums`, {
+    getArtistAlbums(artistId, params) {
+      return load(
+        `https://api.spotify.com/v1/artists/${artistId}/albums`,
         params
-      })
+      )
     },
 
-    getAlbums (albumIds) {
+    getAlbums(albumIds) {
       return load(`https://api.spotify.com/v1/albums`, {
-        params: {
-          ids: albumIds.join(',')
-        }
+        ids: albumIds.join(','),
       })
-    }
+    },
   }
 }
 
-function wait (s) {
-  return new Promise (resolve => {
+function wait(s) {
+  return new Promise((resolve) => {
     setTimeout(resolve, s * 1000)
   })
 }
 
-export default function Service (TOKEN) {
+export default function Service(TOKEN) {
   const spotifyApi = Api(TOKEN)
 
-  async function getFollowedArtists (after) {
+  async function getFollowedArtists(after) {
     const limit = 50
 
-    const response = await spotifyApi.getFollowedArtists({ limit, after })
+    const data = await spotifyApi.getFollowedArtists({ limit, after })
 
-    const nextAfter = response.data.artists.cursors.after
-    const artists = response.data.artists.items
+    const nextAfter = data.artists.cursors.after
+    const artists = data.artists.items
 
     if (nextAfter) {
       return [].concat(artists, await getFollowedArtists(nextAfter))
@@ -95,64 +78,48 @@ export default function Service (TOKEN) {
     }
   }
 
-  async function getAlbumIds (artists) {
-    const allAlbumsDataArray = await bluebird.map(artists, artist => {
-      return spotifyApi.getArtistAlbums(artist.id, {
-        limit: 5,
-        album_type: 'album,single',
-        country: 'DE'
+  async function getAlbums(artists) {
+    const allAlbumsDataArray = await Promise.all(
+      artists.map((artist) => {
+        return spotifyApi.getArtistAlbums(artist.id, {
+          limit: 5,
+          album_type: 'album,single',
+          country: 'DE',
+        })
       })
-    })
+    )
 
-    const allAlbums = unpackArray(allAlbumsDataArray, response => response.data.items)
+    const allAlbums = allAlbumsDataArray.flatMap((data) => data.items)
 
-    return allAlbums.map(album => album.id)
+    return allAlbums
   }
 
-  async function getAlbumInformation (albumIds) {
-    const chunks = _.chunk(albumIds, 20)
+  function transformAlbums(albums) {
+    return albums.map((album) => {
+      const index = Math.min(2, album.images.length) - 1
 
-    // returns [[body.albums.20 Albums], [body.albums.20 Albums]]
-    const albumDataArray = await bluebird.map(chunks, albumIds => {
-      return spotifyApi.getAlbums(albumIds)
-    })
-
-    // returns [[20 Albums], [20 Albums]]
-    const albums = unpackArray(albumDataArray, response => response.data.albums)
-
-    return albums
-  }
-
-  function transformAlbums (albums) {
-    return albums.map(_album => {
-      const album = _.pick(_album, [
-        'album_type',
-        'artists',
-        'external_urls',
-        'href',
-        'id',
-        'images',
-        'name',
-        'release_date'
-      ])
-
-      const formats = ['YYYY-MM-DD', 'YYYY-MM', 'YYYY']
-
-      album.release_date = moment.utc(album.release_date, formats).toDate()
-
-      return album
+      return {
+        album_type: album.album_type,
+        artists: album.artists.map((artist) => artist.name).join(', '),
+        external_urls: album.external_urls,
+        href: album.href,
+        id: album.id,
+        cover: album.images[index].url,
+        name: album.name,
+        release_date: album.release_date,
+        date: new Date(album.release_date).toLocaleDateString('de-DE'),
+      }
     })
   }
 
-  function orderAlbums (albums) {
-    return _.orderBy(albums, ['release_date'], 'desc')
+  function orderAlbums(albums) {
+    return albums.sort((a, b) => b.release_date.localeCompare(a.release_date))
   }
 
   return {
     getFollowedArtists,
-    getAlbumIds,
-    getAlbumInformation,
+    getAlbums,
     transformAlbums,
-    orderAlbums
+    orderAlbums,
   }
 }

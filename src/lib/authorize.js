@@ -1,13 +1,15 @@
-import SpotifyWebApi from 'spotify-web-api-node'
-import clientConfig from '../../config/client'
+import { env } from '$env/dynamic/public'
 
 const scopes = ['user-follow-read']
-const state = 'my state'
+const state = 'some-state-of-my-choice'
 
-export function getUrl () {
-  const spotifyApi = new SpotifyWebApi(clientConfig)
+export function getUrl() {
+  const url = new URL('https://accounts.spotify.com/authorize')
+  url.searchParams.append('client_id', env.PUBLIC_CLIENT_ID)
+  url.searchParams.append('response_type', 'code')
+  url.searchParams.append('redirect_uri', env.PUBLIC_REDIRECT_URI)
+  url.searchParams.append('scope', scopes.join(' '))
+  url.searchParams.append('state', state)
 
-  const authorizeURL = spotifyApi.createAuthorizeURL(scopes, state)
-
-  return authorizeURL
+  return url.toString()
 }

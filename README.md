@@ -4,38 +4,27 @@
 
 List the latest albums of your followed artists in chronological order.
 
-![Screenshot](https://raw.githubusercontent.com/danieldiekmeier/spotify-latest-releases/master/screenshot.jpg)
+![Screenshot](https://raw.githubusercontent.com/danieldiekmeier/spotify-latest-releases/main/screenshot.jpg)
 
 ## Installation
 
 You can install this on your own server, if you want.
 
-Before you start, you should register an application with Spotify, by going here: https://developer.spotify.com/my-applications/#!/applications. This is where you get your `clientId` and `clientSecret`, and where you have to enter your `redirectUri`.
+Before you start, you should register an application with Spotify, by going here: https://developer.spotify.com/dashboard. This is where you get your `clientId` and `clientSecret`, and where you have to enter your `redirectUri`.
 
 1. Clone
-2. Run `yarn` to install the dependencies
-3. Create `config/index.js` and `config/client.js`, with following contents:
+2. Run `pnpm i` (or `npm i`) to install the dependencies
+3. You have to pass these three environment variables to the app:
 
-```js
-// index.js
-const clientConfig = require('./client')
+```env
+PUBLIC_CLIENT_ID=YOUR_CLIENT_ID
+PUBLIC_REDIRECT_URI=http://localhost:5173/callback
 
-module.exports = Object.assign({
-  port: 5000,
-  clientSecret: <client_secret>
-}, clientConfig)
+CLIENT_SECRET=YOUR_CLIENT_SECRET
 ```
 
-```js
-// client.js
-module.exports = {
-  clientId: <client_id>,
-  redirectUri: <your_redirect_url>
-}
-```
+(The easiest way to do this locally is to create a `.env.local` file in the root of the project.)
 
-4. Run `yarn build`
-5. Run `node src/app.js`
-6. Go to `localhost:5000` to see the app.
-
-Make sure you have Node >= 7.6 installed.
+4. Run `pnpm build` to build the SvelteKit app
+5. Run `node build`
+6. Go to `localhost:3000` to see the app. (You can change the port by setting the `PORT` environment variable.)

@@ -1,3 +1,4 @@
-/config
-/dist
+/.svelte-kit
+/build
 /node_modules
+.env.local
