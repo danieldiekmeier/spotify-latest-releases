@@ -11,9 +11,6 @@
       <h2>{album.name}</h2>
       <p>{album.album_type}</p>
       <p>{album.date}</p>
-      <!-- <pre>
-        {JSON.stringify(album, null, 2)}
-      </pre> -->
     </div>
   </a>
 
@@ -28,9 +25,9 @@
   }
 
   .Album-wrapper {
-    display: grid;
-    grid-template-columns: 10em auto;
-    grid-column-gap: 1em;
+    display: flex;
+    gap: 1em;
+    align-items: center;
     padding: 1em;
 
     color: inherit;
@@ -45,6 +42,8 @@
     display: block;
     aspect-ratio: 1 / 1;
     width: 100%;
+    max-width: min(10em, 25vw);
+    height: auto;
     border-radius: 3px;
     overflow: hidden;
     box-shadow: 0 2px 4px rgba(#000, 0.2);

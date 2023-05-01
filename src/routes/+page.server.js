@@ -4,35 +4,37 @@ import Service from '$lib/service.js'
 export async function load({ locals }) {
   const token = locals.session.data.token
 
-  if (!token)
-    return {
-      token: false,
-    }
+  if (!token) {
+    return { token: false }
+  }
 
-  return {
-    token: true,
-    later: {
-      albums: loadAlbums(token),
-    },
+  try {
+    const service = Service(token)
+    const artists = await service.getFollowedArtists()
+
+    return {
+      token: true,
+      later: {
+        albums: loadAlbums(service, artists),
+      },
+    }
+  } catch (error) {
+    console.error(error)
+    await locals.session.destroy()
+    return { token: false }
   }
 }
 
-async function loadAlbums(token) {
-  const service = Service(token)
-
-  let state = 'Loading all your artists'
-  const artists = await service.getFollowedArtists()
-
-  state = `Loading the latest albums of your ${artists.length} artists`
+async function loadAlbums(service, artists) {
   const rawAlbums = await service.getAlbums(artists)
-
-  state = 'Almost done'
   const realAlbums = service.transformAlbums(rawAlbums)
-
   const orderedAlbums = service.orderAlbums(realAlbums)
 
-  // state = null
-  // albums = orderedAlbums
-  // loading = false
   return orderedAlbums
+}
+
+export const actions = {
+  async logout({ locals }) {
+    await locals.session.destroy()
+  },
 }

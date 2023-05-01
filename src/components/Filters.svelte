@@ -16,14 +16,16 @@
 
 <style>
   .Filters {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1em;
     padding-top: 2em;
     text-align: center;
   }
 
   .Filters label {
     display: inline-block;
-    margin-left: 1em;
-    margin-right: 1em;
   }
 
   .Filters input {
