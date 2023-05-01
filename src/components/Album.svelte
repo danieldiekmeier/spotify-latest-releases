@@ -4,7 +4,7 @@
 
 <div class="Album">
   <a class="Album-wrapper" href={album.external_urls.spotify} target="_blank">
-    <img class="Album-cover" src={album.cover} alt="" />
+    <img class="Album-cover" src={album.cover} alt="" loading="lazy" />
 
     <div class="Album-content">
       <h3>{album.artists}</h3>
