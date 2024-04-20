@@ -15,7 +15,7 @@
       </a>
     </div>
 
-    <small> This website is in no way affiliated with Spotify. </small>
+    <small> This website is not made by or affiliated with Spotify. </small>
   </div>
 </div>
 
@@ -30,6 +30,7 @@
   }
 
   .NoToken h2 {
+    line-height: 1.2;
     margin-bottom: 1rem;
   }
 

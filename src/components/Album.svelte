@@ -9,8 +9,7 @@
     <div class="Album-content">
       <h3>{album.artists}</h3>
       <h2>{album.name}</h2>
-      <p>{album.album_type}</p>
-      <p>{album.date}</p>
+      <p>{album.album_type} · {album.date}</p>
     </div>
   </a>
 
@@ -22,6 +21,7 @@
     position: relative;
     border-radius: 0.5em;
     overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0 0 0 / 0.2);
   }
 
   .Album-wrapper {
@@ -32,7 +32,7 @@
 
     color: inherit;
     text-decoration: none;
-    background-color: rgba(#fff, 0.05);
+    background-color: rgba(255 255 255 / 0.05);
     transition-duration: 0.2s;
     transition-property: background-color;
     z-index: 1;
@@ -46,14 +46,14 @@
     height: auto;
     border-radius: 3px;
     overflow: hidden;
-    box-shadow: 0 2px 4px rgba(#000, 0.2);
+    box-shadow: 0 2px 4px rgba(0 0 0 / 0.2);
     transition-duration: 0.1s;
     transition-property: transform, box-shadow;
   }
 
   .Album:hover .Album-cover {
     transform: scale(1.05);
-    box-shadow: 0 3px 8px rgba(#000, 0.3);
+    box-shadow: 0 3px 8px rgba(0 0 0 0.3);
   }
 
   .Album-backdrop {
@@ -78,7 +78,7 @@
   }
 
   .Album-content h3 {
-    margin-bottom: 0rem;
+    margin-bottom: 0.5rem;
   }
 
   .Album-content h2 {
@@ -86,7 +86,6 @@
   }
 
   .Album-content p {
-    margin-bottom: 0.5rem;
     text-transform: capitalize;
   }
 </style>

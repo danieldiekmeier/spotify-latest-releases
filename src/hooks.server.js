@@ -1,7 +1,8 @@
+import { env } from '$env/dynamic/private'
 import { handleSession } from 'svelte-kit-cookie-session'
 import { sequence } from '@sveltejs/kit/hooks'
 
-const secret = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9'
+const secret = env.SESSION_SECRET
 
 const sessionHandler = handleSession({
   key: 'releases.session',

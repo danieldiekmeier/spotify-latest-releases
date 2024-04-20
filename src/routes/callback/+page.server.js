@@ -32,5 +32,5 @@ export async function load({ url, locals }) {
   const token = tokenSchema.parse(data).access_token
   await locals.session.update(() => ({ token }))
 
-  throw redirect(302, '/')
+  redirect(302, '/');
 }

@@ -1,5 +1,5 @@
 <div class="Loading">
-  <div class="Spinner" />
+  <div class="Spinner"></div>
 
   <slot />
 </div>

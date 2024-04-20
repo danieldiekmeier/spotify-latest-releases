@@ -21,6 +21,8 @@ PUBLIC_CLIENT_ID=YOUR_CLIENT_ID
 PUBLIC_REDIRECT_URI=http://localhost:5173/callback
 
 CLIENT_SECRET=YOUR_CLIENT_SECRET
+
+SESSION_SECRET=YOUR_SESSION_SECRET # needs to be exactly 32 characters long
 ```
 
 (The easiest way to do this locally is to create a `.env.local` file in the root of the project.)
